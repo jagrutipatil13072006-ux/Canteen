@@ -3,239 +3,293 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Campus Canteen - Fresh Food Daily</title>
+    <title>CampusEats Pro - Premium Campus Dining</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --primary: #667eea; --secondary: #764ba2; --accent: #f093fb;
+            --success: #00d4aa; --danger: #ff6b6b; --warning: #ffd93d;
+            --glass-bg: rgba(255,255,255,0.1); --glass-border: rgba(255,255,255,0.18);
         }
-
         body {
-            font-family: 'Arial', sans-serif;
-            background-color: #f5f5f5;
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh; color: white; overflow-x: hidden;
         }
-
-        /* Header Styles */
-        header {
-            background-color: #4ECDC4;
-            padding: 20px 50px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        body.dark-mode { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); }
+        .glass {
+            background: var(--glass-bg); backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 8px 32px 0 rgba(31,38,135,0.37);
         }
-
-        .logo {
-            font-size: 24px;
-            font-weight: bold;
-            color: #2d3436;
+        nav { position: fixed; top: 0; width: 100%; padding: 1rem 5%; z-index: 1000; transition: all 0.3s; }
+        nav.scrolled { background: rgba(255,255,255,0.15); backdrop-filter: blur(20px); }
+        .nav-container { display: flex; justify-content: space-between; align-items: center; max-width: 1400px; margin: 0 auto; }
+        .logo { font-size: 1.8rem; font-weight: bold; display: flex; align-items: center; gap: 0.5rem; }
+        .nav-links { display: flex; gap: 2rem; align-items: center; }
+        .nav-links a { color: white; text-decoration: none; font-weight: 500; transition: all 0.3s; padding: 0.5rem 1rem; border-radius: 8px; }
+        .nav-links a:hover { background: var(--glass-bg); }
+        .theme-toggle, .cart-btn {
+            background: var(--glass-bg); border: 1px solid var(--glass-border);
+            color: white; padding: 0.5rem 1rem; border-radius: 8px;
+            cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 0.5rem;
         }
-
-        nav {
-            display: flex;
-            gap: 30px;
-        }
-
-        nav a {
-            text-decoration: none;
-            color: #2d3436;
-            font-weight: 500;
-            transition: color 0.3s;
-        }
-
-        nav a:hover {
-            color: #ffffff;
-        }
-
-        /* Hero Section */
-        .hero {
-            background: linear-gradient(135deg, #4ECDC4 0%, #FFE66D 100%);
-            padding: 80px 50px;
-            text-align: center;
-            color: #2d3436;
-        }
-
-        .hero h1 {
-            font-size: 64px;
-            font-style: italic;
-            margin-bottom: 15px;
-            font-weight: bold;
-        }
-
-        .hero p {
-            font-size: 22px;
-            margin-bottom: 30px;
-        }
-
-        .btn {
-            background-color: #2d3436;
-            color: white;
-            padding: 15px 40px;
-            border: none;
-            border-radius: 30px;
-            font-size: 18px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-
-        .btn:hover {
-            background-color: #1a1d1f;
-        }
-
-        /* Menu Section */
-        .menu-section {
-            padding: 60px 50px;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .menu-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 40px;
-            margin-top: 40px;
-        }
-
-        .menu-item {
-            background: white;
-            border-radius: 15px;
-            overflow: hidden;
-            text-align: center;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-            transition: transform 0.3s;
-        }
-
-        .menu-item:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-        }
-
-        .menu-item img {
-            width: 100%;
-            height: 250px;
-            object-fit: cover;
-        }
-
-        .menu-item h3 {
-            font-size: 24px;
-            margin: 20px 0 10px 0;
-            color: #2d3436;
-        }
-
-        .menu-item .price {
-            font-size: 20px;
-            color: #4ECDC4;
-            font-weight: bold;
-            margin-bottom: 20px;
-        }
-
-        /* Footer */
-        footer {
-            background-color: #3d3d3d;
-            color: white;
-            padding: 30px 50px;
-            text-align: center;
-        }
-
-        footer p {
-            margin: 10px 0;
-            font-size: 16px;
-        }
-
-        /* Responsive Design */
+        .theme-toggle:hover, .cart-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+        .cart-count { background: var(--danger); padding: 0.2rem 0.6rem; border-radius: 20px; font-size: 0.8rem; font-weight: bold; }
+        .hero { padding: 10rem 5% 5rem; text-align: center; }
+        .hero h1 { font-size: 4rem; margin-bottom: 1rem; animation: fadeInUp 0.8s ease; }
+        .hero p { font-size: 1.5rem; opacity: 0.9; margin-bottom: 2rem; animation: fadeInUp 1s ease; }
+        .btn { padding: 1rem 2.5rem; border: none; border-radius: 50px; font-size: 1.1rem; font-weight: 600; cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; gap: 0.5rem; }
+        .btn-primary { background: linear-gradient(135deg, var(--accent) 0%, var(--secondary) 100%); color: white; }
+        .btn-secondary { background: var(--glass-bg); color: white; border: 2px solid white; }
+        .btn:hover { transform: translateY(-3px); box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
+        .controls { padding: 2rem 5%; max-width: 1400px; margin: 0 auto; }
+        .search-input { flex: 1; min-width: 250px; padding: 1rem 1.5rem; border-radius: 50px; border: none; background: var(--glass-bg); backdrop-filter: blur(10px); color: white; font-size: 1rem; }
+        .search-input::placeholder { color: rgba(255,255,255,0.6); }
+        .filter-chips { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; margin-top: 1rem; }
+        .chip { padding: 0.7rem 1.5rem; border-radius: 25px; border: 2px solid white; background: transparent; color: white; cursor: pointer; transition: all 0.3s; font-weight: 500; }
+        .chip:hover, .chip.active { background: white; color: var(--secondary); }
+        .menu-section { padding: 2rem 5%; max-width: 1400px; margin: 0 auto; }
+        .section-title { font-size: 2.5rem; text-align: center; margin-bottom: 3rem; }
+        .menu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 2rem; }
+        .menu-item { border-radius: 20px; overflow: hidden; transition: all 0.4s; position: relative; }
+        .menu-item:hover { transform: translateY(-10px) scale(1.02); }
+        .item-image { width: 100%; height: 250px; object-fit: cover; }
+        .item-content { padding: 1.5rem; background: var(--glass-bg); backdrop-filter: blur(10px); }
+        .item-name { font-size: 1.4rem; font-weight: 600; margin-bottom: 0.5rem; }
+        .item-desc { opacity: 0.8; margin-bottom: 1rem; font-size: 0.9rem; }
+        .item-footer { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+        .item-price { font-size: 1.8rem; font-weight: bold; color: var(--warning); }
+        .rating { display: flex; align-items: center; gap: 0.3rem; }
+        .rating i { color: var(--warning); }
+        .add-to-cart { background: linear-gradient(135deg, var(--success) 0%, #00a896 100%); color: white; border: none; padding: 0.8rem 1.5rem; border-radius: 25px; cursor: pointer; font-weight: 600; width: 100%; }
+        .add-to-cart:hover { transform: scale(1.05); }
+        .cart-sidebar { position: fixed; right: -400px; top: 0; width: 400px; height: 100vh; background: var(--glass-bg); backdrop-filter: blur(20px); padding: 2rem; transition: all 0.3s; z-index: 2000; overflow-y: auto; }
+        .cart-sidebar.active { right: 0; }
+        .cart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid rgba(255,255,255,0.2); }
+        .close-cart { background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer; }
+        .cart-item { display: flex; gap: 1rem; margin-bottom: 1.5rem; padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 10px; }
+        .cart-item img { width: 80px; height: 80px; object-fit: cover; border-radius: 8px; }
+        .cart-item-info { flex: 1; }
+        .qty-btn { background: var(--glass-bg); border: 1px solid white; color: white; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; }
+        .checkout-btn { width: 100%; padding: 1rem; background: linear-gradient(135deg, var(--success) 0%, #00a896 100%); color: white; border: none; border-radius: 25px; font-size: 1.1rem; font-weight: 600; cursor: pointer; margin-top: 1rem; }
+        .toast { position: fixed; bottom: 2rem; right: 2rem; padding: 1rem 1.5rem; background: var(--glass-bg); backdrop-filter: blur(10px); border-radius: 10px; transform: translateX(500px); transition: all 0.3s; z-index: 3000; border-left: 4px solid var(--success); }
+        .toast.show { transform: translateX(0); }
+        footer { background: rgba(0,0,0,0.3); padding: 3rem 5%; margin-top: 5rem; text-align: center; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
         @media (max-width: 768px) {
-            .menu-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .hero h1 {
-                font-size: 42px;
-            }
-
-            header {
-                flex-direction: column;
-                gap: 15px;
-            }
-
-            nav {
-                gap: 15px;
-            }
+            .hero h1 { font-size: 2.5rem; }
+            .menu-grid { grid-template-columns: 1fr; }
+            .cart-sidebar { width: 100%; right: -100%; }
         }
     </style>
 </head>
 <body>
-    <!-- Header -->
-    <header>
-        <div class="logo">Campus Canteen</div>
-        <nav>
-            <a href="#home">Home</a>
-            <a href="#menu">Menu</a>
-            <a href="#contact">Contact</a>
-        </nav>
-    </header>
+    <nav id="navbar">
+        <div class="nav-container">
+            <div class="logo"><i class="fas fa-utensils"></i> CampusEats Pro</div>
+            <div class="nav-links">
+                <a href="#home">Home</a>
+                <a href="#menu">Menu</a>
+                <button class="theme-toggle" onclick="toggleTheme()"><i class="fas fa-moon"></i></button>
+                <button class="cart-btn" onclick="toggleCart()">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span class="cart-count" id="cartCount">0</span>
+                </button>
+            </div>
+        </div>
+    </nav>
 
-    <!-- Hero Section -->
-    <section class="hero">
-        <h1>Fresh Food Daily</h1>
-        <p>Delicious meals for students</p>
-        <button class="btn">View Menu</button>
+    <section class="hero" id="home">
+        <h1>Premium Campus Dining</h1>
+        <p>Fresh, Delicious & Affordable Meals</p>
+        <button class="btn btn-primary" onclick="document.getElementById('menu').scrollIntoView({behavior: 'smooth'})">
+            <i class="fas fa-book-open"></i> Browse Menu
+        </button>
     </section>
 
-    <!-- Menu Section -->
-    <section class="menu-section" id="menu">
-        <div class="menu-grid">
-    <div class="menu-item">
-        <img src="images/Vadapav.avif" alt="Vadapav">
-        <h3>Vadapav</h3>
-        <p class="price">Rs.20</p>
+    <div class="controls" id="menu">
+        <input type="text" class="search-input glass" placeholder="🔍 Search food..." id="searchInput" oninput="filterMenu()">
+        <div class="filter-chips">
+            <button class="chip active" onclick="filterCategory('all')">All</button>
+            <button class="chip" onclick="filterCategory('veg')">🥗 Veg</button>
+            <button class="chip" onclick="filterCategory('nonveg')">🍗 Non-Veg</button>
+            <button class="chip" onclick="filterCategory('special')">⭐ Special</button>
+        </div>
     </div>
 
-    <div class="menu-item">
-        <img src="images/dosa.avif" alt="Dosa">
-        <h3>Dosa</h3>
-        <p class="price">Rs.35</p>
-    </div>
-
-    <div class="menu-item">
-        <img src="images/poha.webp" alt="Poha">
-        <h3>Poha</h3>
-        <p class="price">Rs.25</p>
-    </div>
-
-    <div class="menu-item">
-        <img src="images/Samosa.jfif" alt="Samosa">
-        <h3>Samosa</h3>
-        <p class="price">Rs.20</p>
-    </div>
-
-    <div class="menu-item">
-        <img src="images/Pavbhaji.jfif" alt="PavBhaji">
-        <h3>PavBhaji</h3>
-        <p class="price">Rs.70</p>
-    </div>
-
-    <div class="menu-item">
-        <img src="images/kachori.jfif" alt="Kachori">
-        <h3>Kachori</h3>
-        <p class="price">Rs.20</p>
-    </div>
-</div>
+    <section class="menu-section">
+        <h2 class="section-title">Our Menu</h2>
+        <div class="menu-grid" id="menuGrid"></div>
     </section>
 
-    <!-- Footer -->
-    <footer id="contact">
-        <p><strong>Contact:</strong> canteen@college.edu | <strong>Phone:</strong> +91 9373110632</p>
-        <p><strong>Open:</strong> Mon-Sat, 8:00 AM - 6:00 PM</p>
+    <div class="cart-sidebar" id="cartSidebar">
+        <div class="cart-header">
+            <h2><i class="fas fa-shopping-cart"></i> Cart</h2>
+            <button class="close-cart" onclick="toggleCart()"><i class="fas fa-times"></i></button>
+        </div>
+        <div id="cartItems"></div>
+        <div id="cartTotal" style="display:none;">
+            <div style="border-top: 2px solid rgba(255,255,255,0.2); padding-top: 1rem; margin-top: 1rem;">
+                <div style="display:flex; justify-content:space-between; font-size:1.5rem; font-weight:bold; color: var(--warning);">
+                    <span>Total:</span>
+                    <span id="total">₹0</span>
+                </div>
+            </div>
+            <button class="checkout-btn" onclick="checkout()">Place Order</button>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"><i class="fas fa-check-circle"></i> <span id="toastMsg"></span></div>
+
+    <footer>
+        <p>© 2026 CampusEats Pro | Built by Jagruti</p>
+        <p style="margin-top:1rem; opacity:0.8;">📞 +91 9373110632 | canteen@college.edu</p>
     </footer>
 
     <script>
-        // Smooth scroll for menu button
-        document.querySelector('.btn').addEventListener('click', function() {
-            document.querySelector('#menu').scrollIntoView({ 
-                behavior: 'smooth' 
-            });
-        });
+        const menu = [
+            {id:1, name:"Vadapav", price:20, cat:"veg", img:"https://images.unsplash.com/photo-1630383249896-424e482df921?w=500", rating:4.5},
+            {id:2, name:"Masala Dosa", price:35, cat:"veg", img:"https://images.unsplash.com/photo-1668236543090-82eba5ee5976?w=500", rating:4.8, special:true},
+            {id:3, name:"Poha", price:25, cat:"veg", img:"https://images.unsplash.com/photo-1606491956689-2ea866880c84?w=500", rating:4.3},
+            {id:4, name:"Samosa", price:15, cat:"veg", img:"https://images.unsplash.com/photo-1601050690597-df0568f70950?w=500", rating:4.6},
+            {id:5, name:"Pav Bhaji", price:40, cat:"veg", img:"https://images.unsplash.com/photo-1626074353765-517a818a5b07?w=500", rating:4.7, special:true},
+            {id:6, name:"Sandwich", price:30, cat:"veg", img:"https://images.unsplash.com/photo-1528735602780-2552fd46c7af?w=500", rating:4.4},
+            {id:7, name:"Chai", price:10, cat:"veg", img:"https://images.unsplash.com/photo-1576092768241-dec231879fc3?w=500", rating:4.9},
+            {id:8, name:"Chicken Burger", price:80, cat:"nonveg", img:"https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500", rating:4.7},
+        ];
+        let cart = [];
+        let currentFilter = 'all';
+
+        function renderMenu(items = menu) {
+            const grid = document.getElementById('menuGrid');
+            grid.innerHTML = items.map(item => `
+                <div class="menu-item glass">
+                    <img src="${item.img}" alt="${item.name}" class="item-image">
+                    <div class="item-content">
+                        <div class="item-name">${item.name} ${item.special ? '⭐' : ''}</div>
+                        <div class="item-desc">${item.cat === 'veg' ? '🥗 Vegetarian' : '🍗 Non-Veg'}</div>
+                        <div class="item-footer">
+                            <div class="item-price">₹${item.price}</div>
+                            <div class="rating">
+                                <i class="fas fa-star"></i> ${item.rating}
+                            </div>
+                        </div>
+                        <button class="add-to-cart" onclick="addToCart(${item.id})">
+                            <i class="fas fa-plus"></i> Add to Cart
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function filterCategory(cat) {
+            currentFilter = cat;
+            document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+            event.target.classList.add('active');
+            const filtered = cat === 'all' ? menu : 
+                           cat === 'special' ? menu.filter(i => i.special) :
+                           menu.filter(i => i.cat === cat);
+            renderMenu(filtered);
+        }
+
+        function filterMenu() {
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = menu.filter(i => 
+                i.name.toLowerCase().includes(search) &&
+                (currentFilter === 'all' || i.cat === currentFilter || (currentFilter === 'special' && i.special))
+            );
+            renderMenu(filtered);
+        }
+
+        function addToCart(id) {
+            const item = menu.find(i => i.id === id);
+            const existing = cart.find(i => i.id === id);
+            if (existing) existing.qty++;
+            else cart.push({...item, qty: 1});
+            updateCart();
+            showToast(`${item.name} added to cart!`);
+        }
+
+        function updateCart() {
+            const count = cart.reduce((sum, i) => sum + i.qty, 0);
+            document.getElementById('cartCount').textContent = count;
+            
+            const itemsHtml = cart.length ? cart.map(i => `
+                <div class="cart-item">
+                    <img src="${i.img}" alt="${i.name}">
+                    <div class="cart-item-info">
+                        <div style="font-weight:600;">${i.name}</div>
+                        <div style="color:var(--warning); font-weight:bold;">₹${i.price}</div>
+                        <div style="display:flex; gap:0.5rem; margin-top:0.5rem; align-items:center;">
+                            <button class="qty-btn" onclick="changeQty(${i.id}, -1)">-</button>
+                            <span>${i.qty}</span>
+                            <button class="qty-btn" onclick="changeQty(${i.id}, 1)">+</button>
+                            <button class="qty-btn" onclick="removeItem(${i.id})" style="margin-left:auto;">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('') : '<div style="text-align:center; padding:3rem;"><i class="fas fa-shopping-cart" style="font-size:3rem; opacity:0.5;"></i><p style="margin-top:1rem;">Cart is empty</p></div>';
+            
+            document.getElementById('cartItems').innerHTML = itemsHtml;
+            
+            if (cart.length) {
+                const total = cart.reduce((sum, i) => sum + (i.price * i.qty), 0);
+                document.getElementById('total').textContent = `₹${total}`;
+                document.getElementById('cartTotal').style.display = 'block';
+            } else {
+                document.getElementById('cartTotal').style.display = 'none';
+            }
+        }
+
+        function changeQty(id, delta) {
+            const item = cart.find(i => i.id === id);
+            item.qty += delta;
+            if (item.qty <= 0) removeItem(id);
+            else updateCart();
+        }
+
+        function removeItem(id) {
+            cart = cart.filter(i => i.id !== id);
+            updateCart();
+        }
+
+        function toggleCart() {
+            document.getElementById('cartSidebar').classList.toggle('active');
+        }
+
+        function checkout() {
+            const items = cart.map(i => `${i.name} x${i.qty}`).join(', ');
+            const total = cart.reduce((sum, i) => sum + (i.price * i.qty), 0);
+            const msg = `Order:%0A${items}%0A%0ATotal: ₹${total}`;
+            window.open(`https://wa.me/919373110632?text=${msg}`, '_blank');
+            cart = [];
+            updateCart();
+            toggleCart();
+            showToast('Order placed! Check WhatsApp');
+        }
+
+        function toggleTheme() {
+            document.body.classList.toggle('dark-mode');
+            const icon = document.querySelector('.theme-toggle i');
+            icon.className = document.body.classList.contains('dark-mode') ? 'fas fa-sun' : 'fas fa-moon';
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMsg').textContent = msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        window.onscroll = () => {
+            document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 50);
+        };
+
+        renderMenu();
     </script>
 </body>
 </html>
