@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - CampusEats Pro</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --primary: #667eea; --secondary: #764ba2; --success: #00d4aa;
+            --danger: #ff6b6b; --warning: #ffd93d; --dark: #2d3436;
+            --light: #f8f9fa; --glass-bg: rgba(255,255,255,0.1);
+        }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh; color: white;
+        }
+        
+        /* Login Page */
+        .login-container {
+            display: flex; justify-content: center; align-items: center;
+            min-height: 100vh; padding: 2rem;
+        }
+        .login-box {
+            background: var(--glass-bg); backdrop-filter: blur(20px);
+            padding: 3rem; border-radius: 20px; max-width: 450px; width: 100%;
+            box-shadow: 0 8px 32px rgba(31,38,135,0.37);
+            border: 1px solid rgba(255,255,255,0.18);
+        }
+        .login-box h1 {
+            text-align: center; margin-bottom: 2rem; font-size: 2rem;
+        }
+        .login-box i.logo-icon {
+            font-size: 4rem; display: block; text-align: center; margin-bottom: 1rem;
+        }
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        .form-group label {
+            display: block; margin-bottom: 0.5rem; font-weight: 500;
+        }
+        .form-group input {
+            width: 100%; padding: 1rem; border-radius: 10px; border: 1px solid rgba(255,255,255,0.3);
+            background: rgba(255,255,255,0.1); color: white; font-size: 1rem;
+        }
+        .form-group input::placeholder { color: rgba(255,255,255,0.5); }
+        .btn {
+            width: 100%; padding: 1rem; border: none; border-radius: 10px;
+            font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--success) 0%, #00a896 100%);
+            color: white;
+        }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,212,170,0.4); }
+        
+        /* Dashboard Layout */
+        .dashboard { display: none; }
+        .dashboard.active { display: flex; }
+        .sidebar {
+            width: 250px; background: rgba(0,0,0,0.3); height: 100vh;
+            position: fixed; left: 0; top: 0; padding: 2rem 0;
+        }
+        .sidebar-logo {
+            padding: 0 1.5rem; margin-bottom: 2rem; font-size: 1.5rem; font-weight: bold;
+        }
+        .sidebar-menu { list-style: none; }
+        .sidebar-menu li {
+            padding: 1rem 1.5rem; cursor: pointer; transition: all 0.3s;
+            display: flex; align-items: center; gap: 1rem;
+        }
+        .sidebar-menu li:hover, .sidebar-menu li.active {
+            background: var(--glass-bg); border-left: 4px solid var(--success);
+        }
+        .sidebar-menu i { width: 20px; }
+        
+        .main-content {
+            margin-left: 250px; padding: 2rem; min-height: 100vh;
+        }
+        .top-bar {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 2rem; padding: 1rem; background: var(--glass-bg);
+            backdrop-filter: blur(10px); border-radius: 15px;
+        }
+        .welcome h2 { font-size: 1.8rem; }
+        .user-menu {
+            display: flex; align-items: center; gap: 1rem;
+        }
+        .logout-btn {
+            padding: 0.5rem 1.5rem; background: var(--danger);
+            border: none; border-radius: 8px; color: white;
+            cursor: pointer; font-weight: 600;
+        }
+        
+        /* Stats Cards */
+        .stats-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem; margin-bottom: 2rem;
+        }
+        .stat-card {
+            background: var(--glass-bg); backdrop-filter: blur(10px);
+            padding: 1.5rem; border-radius: 15px; border: 1px solid rgba(255,255,255,0.18);
+        }
+        .stat-card-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 1rem;
+        }
+        .stat-card h3 { font-size: 0.9rem; opacity: 0.8; }
+        .stat-card .value {
+            font-size: 2.5rem; font-weight: bold; margin-bottom: 0.5rem;
+        }
+        .stat-card .trend {
+            font-size: 0.9rem; color: var(--success);
+        }
+        
+        /* Section */
+        .section {
+            background: var(--glass-bg); backdrop-filter: blur(10px);
+            padding: 2rem; border-radius: 15px; margin-bottom: 2rem;
+            border: 1px solid rgba(255,255,255,0.18); display: none;
+        }
+        .section.active { display: block; }
+        .section h2 {
+            margin-bottom: 1.5rem; font-size: 1.8rem;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        
+        /* Table */
+        table {
+            width: 100%; border-collapse: collapse; margin-top: 1rem;
+        }
+        th, td {
+            padding: 1rem; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        th { background: rgba(255,255,255,0.05); font-weight: 600; }
+        tr:hover { background: rgba(255,255,255,0.05); }
+        
+        /* Buttons */
+        .btn-small {
+            padding: 0.5rem 1rem; border: none; border-radius: 6px;
+            cursor: pointer; font-weight: 600; margin: 0 0.25rem;
+        }
+        .btn-edit { background: var(--warning); color: var(--dark); }
+        .btn-delete { background: var(--danger); color: white; }
+        .btn-success { background: var(--success); color: white; }
+        
+        /* Modal */
+        .modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7); z-index: 1000; align-items: center;
+            justify-content: center;
+        }
+        .modal.active { display: flex; }
+        .modal-content {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 2rem; border-radius: 15px; max-width: 500px; width: 90%;
+            max-height: 90vh; overflow-y: auto;
+        }
+        .modal-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        .modal-header h3 { font-size: 1.5rem; }
+        .close-modal {
+            background: none; border: none; color: white;
+            font-size: 1.5rem; cursor: pointer;
+        }
+        
+        /* Badge */
+        .badge {
+            padding: 0.3rem 0.8rem; border-radius: 20px;
+            font-size: 0.85rem; font-weight: 600; display: inline-block;
+        }
+        .badge-success { background: var(--success); color: white; }
+        .badge-danger { background: var(--danger); color: white; }
+        .badge-warning { background: var(--warning); color: var(--dark); }
+        
+        /* Toast */
+        .toast {
+            position: fixed; top: 2rem; right: 2rem; padding: 1rem 1.5rem;
+            background: var(--glass-bg); backdrop-filter: blur(20px);
+            border-radius: 10px; display: none; align-items: center; gap: 1rem;
+            z-index: 2000; border-left: 4px solid var(--success);
+        }
+        .toast.show { display: flex; animation: slideIn 0.3s; }
+        @keyframes slideIn { from { transform: translateX(400px); } to { transform: translateX(0); } }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar { width: 0; transform: translateX(-250px); }
+            .main-content { margin-left: 0; }
+            .stats-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Page -->
+    <div class="login-container" id="loginPage">
+        <div class="login-box">
+            <i class="fas fa-user-shield logo-icon"></i>
+            <h1>Admin Login</h1>
+            <form onsubmit="login(event)">
+                <div class="form-group">
+                    <label>Username</label>
+                    <input type="text" id="username" placeholder="Enter username" required>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="password" placeholder="Enter password" required>
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-sign-in-alt"></i> Login
+                </button>
+                <p style="text-align: center; margin-top: 1rem; opacity: 0.7; font-size: 0.9rem;">
+                    Default: admin / admin123
+                </p>
+            </form>
+        </div>
+    </div>
+
+    <!-- Dashboard -->
+    <div class="dashboard" id="dashboard">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-logo">
+                <i class="fas fa-utensils"></i> CampusEats
+            </div>
+            <ul class="sidebar-menu">
+                <li class="active" onclick="showSection('overview')">
+                    <i class="fas fa-chart-line"></i> Dashboard
+                </li>
+                <li onclick="showSection('menu')">
+                    <i class="fas fa-utensils"></i> Menu Items
+                </li>
+                <li onclick="showSection('orders')">
+                    <i class="fas fa-receipt"></i> Orders
+                </li>
+                <li onclick="showSection('analytics')">
+                    <i class="fas fa-chart-bar"></i> Analytics
+                </li>
+            </ul>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Top Bar -->
+            <div class="top-bar">
+                <div class="welcome">
+                    <h2>Welcome back, Admin!</h2>
+                    <p style="opacity: 0.8;">Here's what's happening today</p>
+                </div>
+                <div class="user-menu">
+                    <button class="logout-btn" onclick="logout()">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </button>
+                </div>
+            </div>
+
+            <!-- Overview Section -->
+            <div class="section active" id="section-overview">
+                <h2>Dashboard Overview</h2>
+                
+                <!-- Stats -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <h3>Total Revenue</h3>
+                            <i class="fas fa-rupee-sign" style="font-size: 2rem; opacity: 0.3;"></i>
+                        </div>
+                        <div class="value">₹<span id="totalRevenue">0</span></div>
+                        <div class="trend">
+                            <i class="fas fa-arrow-up"></i> +12% from last week
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <h3>Total Orders</h3>
+                            <i class="fas fa-shopping-cart" style="font-size: 2rem; opacity: 0.3;"></i>
+                        </div>
+                        <div class="value" id="totalOrders">0</div>
+                        <div class="trend">
+                            <i class="fas fa-arrow-up"></i> +8% from yesterday
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <h3>Menu Items</h3>
+                            <i class="fas fa-utensils" style="font-size: 2rem; opacity: 0.3;"></i>
+                        </div>
+                        <div class="value" id="menuCount">0</div>
+                        <div class="trend" style="color: var(--warning);">
+                            <i class="fas fa-minus"></i> 2 out of stock
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <h3>Avg Rating</h3>
+                            <i class="fas fa-star" style="font-size: 2rem; opacity: 0.3;"></i>
+                        </div>
+                        <div class="value">4.8</div>
+                        <div class="trend">
+                            <i class="fas fa-arrow-up"></i> Excellent!
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Orders -->
+                <h3 style="margin: 2rem 0 1rem;">Recent Orders</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Items</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                            <th>Time</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recentOrdersTable">
+                        <!-- Orders will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Menu Section -->
+            <div class="section" id="section-menu">
+                <h2>
+                    Menu Management
+                    <button class="btn-success btn-small" onclick="openAddItemModal()">
+                        <i class="fas fa-plus"></i> Add New Item
+                    </button>
+                </h2>
+                
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Item</th>
+                            <th>Category</th>
+                            <th>Price</th>
+                            <th>Stock</th>
+                            <th>Rating</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="menuTable">
+                        <!-- Menu items will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Orders Section -->
+            <div class="section" id="section-orders">
+                <h2>Orders Management</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Customer</th>
+                            <th>Items</th>
+                            <th>Total</th>
+                            <th>Status</th>
+                            <th>Time</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ordersTable">
+                        <!-- Orders will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Analytics Section -->
+            <div class="section" id="section-analytics">
+                <h2>Analytics & Reports</h2>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>Most Popular Item</h3>
+                        <div class="value" style="font-size: 1.5rem;">Masala Dosa</div>
+                        <p style="opacity: 0.8;">45 orders this week</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Peak Hours</h3>
+                        <div class="value" style="font-size: 1.5rem;">12-2 PM</div>
+                        <p style="opacity: 0.8;">Highest traffic period</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Avg Order Value</h3>
+                        <div class="value" style="font-size: 1.5rem;">₹65</div>
+                        <p style="opacity: 0.8;">Per transaction</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Customer Satisfaction</h3>
+                        <div class="value" style="font-size: 1.5rem;">92%</div>
+                        <p style="opacity: 0.8;">Based on reviews</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Item Modal -->
+    <div class="modal" id="itemModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Add New Item</h3>
+                <button class="close-modal" onclick="closeModal()">×</button>
+            </div>
+            <form onsubmit="saveItem(event)">
+                <div class="form-group">
+                    <label>Item Name</label>
+                    <input type="text" id="itemName" required>
+                </div>
+                <div class="form-group">
+                    <label>Price (₹)</label>
+                    <input type="number" id="itemPrice" required>
+                </div>
+                <div class="form-group">
+                    <label>Category</label>
+                    <select id="itemCategory" style="width:100%; padding:1rem; border-radius:10px; background:rgba(255,255,255,0.1); color:white; border:1px solid rgba(255,255,255,0.3);">
+                        <option value="veg">Vegetarian</option>
+                        <option value="nonveg">Non-Vegetarian</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Image URL</label>
+                    <input type="text" id="itemImage">
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="itemSpecial"> Mark as Today's Special
+                    </label>
+                </div>
+                <button type="submit" class="btn btn-primary">Save Item</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">
+        <i class="fas fa-check-circle"></i>
+        <span id="toastMsg"></span>
+    </div>
+
+    <script>
+        // Sample data
+        let menuItems = JSON.parse(localStorage.getItem('menuItems')) || [
+            {id:1, name:"Vadapav", price:20, cat:"veg", img:"https://images.unsplash.com/photo-1630383249896-424e482df921?w=500", rating:4.5, inStock:true},
+            {id:2, name:"Masala Dosa", price:35, cat:"veg", img:"https://images.unsplash.com/photo-1668236543090-82eba5ee5976?w=500", rating:4.8, inStock:true, special:true},
+            {id:3, name:"Poha", price:25, cat:"veg", img:"https://images.unsplash.com/photo-1606491956689-2ea866880c84?w=500", rating:4.3, inStock:true},
+            {id:4, name:"Samosa", price:15, cat:"veg", img:"https://images.unsplash.com/photo-1601050690597-df0568f70950?w=500", rating:4.6, inStock:true},
+        ];
+
+        let orders = JSON.parse(localStorage.getItem('orders')) || [
+            {id:'ORD001', items:'Vadapav x2, Chai x1', amount:50, status:'Completed', time:'10:30 AM', customer:'Student A'},
+            {id:'ORD002', items:'Masala Dosa x1', amount:35, status:'Preparing', time:'11:15 AM', customer:'Student B'},
+            {id:'ORD003', items:'Samosa x3, Chai x2', amount:65, status:'Pending', time:'11:45 AM', customer:'Student C'},
+        ];
+
+        let currentEditId = null;
+
+        function login(e) {
+            e.preventDefault();
+            const user = document.getElementById('username').value;
+            const pass = document.getElementById('password').value;
+            
+            if (user === 'admin' && pass === 'admin123') {
+                document.getElementById('loginPage').style.display = 'none';
+                document.getElementById('dashboard').classList.add('active');
+                loadDashboard();
+                showToast('Login successful!');
+            } else {
+                alert('Invalid credentials!');
+            }
+        }
+
+        function logout() {
+            document.getElementById('dashboard').classList.remove('active');
+            document.getElementById('loginPage').style.display = 'flex';
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+        }
+
+        function loadDashboard() {
+            // Update stats
+            const revenue = orders.reduce((sum, o) => sum + o.amount, 0);
+            document.getElementById('totalRevenue').textContent = revenue;
+            document.getElementById('totalOrders').textContent = orders.length;
+            document.getElementById('menuCount').textContent = menuItems.length;
+            
+            // Load recent orders
+            loadRecentOrders();
+            loadMenuTable();
+            loadOrdersTable();
+        }
+
+        function loadRecentOrders() {
+            const tbody = document.getElementById('recentOrdersTable');
+            tbody.innerHTML = orders.slice(0, 5).map(o => `
+                <tr>
+                    <td><strong>${o.id}</strong></td>
+                    <td>${o.items}</td>
+                    <td>₹${o.amount}</td>
+                    <td><span class="badge badge-${o.status === 'Completed' ? 'success' : o.status === 'Preparing' ? 'warning' : 'danger'}">${o.status}</span></td>
+                    <td>${o.time}</td>
+                </tr>
+            `).join('');
+        }
+
+        function loadMenuTable() {
+            const tbody = document.getElementById('menuTable');
+            tbody.innerHTML = menuItems.map(item => `
+                <tr>
+                    <td><strong>${item.name}</strong></td>
+                    <td>${item.cat === 'veg' ? '🥗 Veg' : '🍗 Non-Veg'}</td>
+                    <td>₹${item.price}</td>
+                    <td><span class="badge badge-${item.inStock ? 'success' : 'danger'}">${item.inStock ? 'In Stock' : 'Out of Stock'}</span></td>
+                    <td>⭐ ${item.rating}</td>
+                    <td>
+                        <button class="btn-small btn-edit" onclick="editItem(${item.id})"><i class="fas fa-edit"></i></button>
+                        <button class="btn-small ${item.inStock ? 'btn-delete' : 'btn-success'}" onclick="toggleStock(${item.id})">${item.inStock ? 'Out' : 'In'}</button>
+                        <button class="btn-small btn-delete" onclick="deleteItem(${item.id})"><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function loadOrdersTable() {
+            const tbody = document.getElementById('ordersTable');
+            tbody.innerHTML = orders.map(o => `
+                <tr>
+                    <td><strong>${o.id}</strong></td>
+                    <td>${o.customer}</td>
+                    <td>${o.items}</td>
+                    <td>₹${o.amount}</td>
+                    <td><span class="badge badge-${o.status === 'Completed' ? 'success' : 'warning'}">${o.status}</span></td>
+                    <td>${o.time}</td>
+                    <td><button class="btn-small btn-success">Complete</button></td>
+                </tr>
+            `).join('');
+        }
+
+        function showSection(section) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.sidebar-menu li').forEach(li => li.classList.remove('active'));
+            document.getElementById('section-' + section).classList.add('active');
+            event.target.closest('li').classList.add('active');
+        }
+
+        function openAddItemModal() {
+            currentEditId = null;
+            document.getElementById('modalTitle').textContent = 'Add New Item';
+            document.getElementById('itemName').value = '';
+            document.getElementById('itemPrice').value = '';
+            document.getElementById('itemCategory').value = 'veg';
+            document.getElementById('itemImage').value = '';
+            document.getElementById('itemSpecial').checked = false;
+            document.getElementById('itemModal').classList.add('active');
+        }
+
+        function editItem(id) {
+            const item = menuItems.find(i => i.id === id);
+            currentEditId = id;
+            document.getElementById('modalTitle').textContent = 'Edit Item';
+            document.getElementById('itemName').value = item.name;
+            document.getElementById('itemPrice').value = item.price;
+            document.getElementById('itemCategory').value = item.cat;
+            document.getElementById('itemImage').value = item.img;
+            document.getElementById('itemSpecial').checked = item.special || false;
+            document.getElementById('itemModal').classList.add('active');
+        }
+
+        function saveItem(e) {
+            e.preventDefault();
+            const item = {
+                id: currentEditId || Date.now(),
+                name: document.getElementById('itemName').value,
+                price: parseInt(document.getElementById('itemPrice').value),
+                cat: document.getElementById('itemCategory').value,
+                img: document.getElementById('itemImage').value || 'https://via.placeholder.com/300',
+                rating: 4.5,
+                inStock: true,
+                special: document.getElementById('itemSpecial').checked
+            };
+
+            if (currentEditId) {
+                const index = menuItems.findIndex(i => i.id === currentEditId);
+                menuItems[index] = item;
+                showToast('Item updated successfully!');
+            } else {
+                menuItems.push(item);
+                showToast('Item added successfully!');
+            }
+
+            localStorage.setItem('menuItems', JSON.stringify(menuItems));
+            loadMenuTable();
+            loadDashboard();
+            closeModal();
+        }
+
+        function deleteItem(id) {
+            if (confirm('Are you sure you want to delete this item?')) {
+                menuItems = menuItems.filter(i => i.id !== id);
+                localStorage.setItem('menuItems', JSON.stringify(menuItems));
+                loadMenuTable();
+                loadDashboard();
+                showToast('Item deleted!');
+            }
+        }
+
+        function toggleStock(id) {
+            const item = menuItems.find(i => i.id === id);
+            item.inStock = !item.inStock;
+            localStorage.setItem('menuItems', JSON.stringify(menuItems));
+            loadMenuTable();
+            showToast(`${item.name} marked as ${item.inStock ? 'In Stock' : 'Out of Stock'}`);
+        }
+
+        function closeModal() {
+            document.getElementById('itemModal').classList.remove('active');
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMsg').textContent = msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        // Initialize
+        loadDashboard();
+    </script>
+</body>
+</html>
