@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CampusEats Pro - Premium Campus Dining</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <meta name="theme-color" content="#667eea">
+    <link rel="manifest" href="manifest.json">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
@@ -30,12 +32,12 @@
         .nav-links { display: flex; gap: 2rem; align-items: center; }
         .nav-links a { color: white; text-decoration: none; font-weight: 500; transition: all 0.3s; padding: 0.5rem 1rem; border-radius: 8px; }
         .nav-links a:hover { background: var(--glass-bg); }
-        .theme-toggle, .cart-btn {
+        .theme-toggle, .cart-btn, .track-btn {
             background: var(--glass-bg); border: 1px solid var(--glass-border);
             color: white; padding: 0.5rem 1rem; border-radius: 8px;
             cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 0.5rem;
         }
-        .theme-toggle:hover, .cart-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+        .theme-toggle:hover, .cart-btn:hover, .track-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
         .cart-count { background: var(--danger); padding: 0.2rem 0.6rem; border-radius: 20px; font-size: 0.8rem; font-weight: bold; }
         .hero { padding: 10rem 5% 5rem; text-align: center; }
         .hero h1 { font-size: 4rem; margin-bottom: 1rem; animation: fadeInUp 0.8s ease; }
@@ -45,9 +47,14 @@
         .btn-secondary { background: var(--glass-bg); color: white; border: 2px solid white; }
         .btn:hover { transform: translateY(-3px); box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
         .controls { padding: 2rem 5%; max-width: 1400px; margin: 0 auto; }
-        .search-input { flex: 1; min-width: 250px; padding: 1rem 1.5rem; border-radius: 50px; border: none; background: var(--glass-bg); backdrop-filter: blur(10px); color: white; font-size: 1rem; }
+        .search-bar { display: flex; gap: 1rem; margin-bottom: 1rem; position: relative; }
+        .search-input { flex: 1; min-width: 250px; padding: 1rem 3.5rem 1rem 1.5rem; border-radius: 50px; border: none; background: var(--glass-bg); backdrop-filter: blur(10px); color: white; font-size: 1rem; }
         .search-input::placeholder { color: rgba(255,255,255,0.6); }
-        .filter-chips { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; margin-top: 1rem; }
+        .voice-btn { position: absolute; right: 1rem; top: 50%; transform: translateY(-50%); background: none; border: none; color: white; font-size: 1.2rem; cursor: pointer; transition: all 0.3s; }
+        .voice-btn:hover { color: var(--danger); transform: translateY(-50%) scale(1.2); }
+        .voice-btn.listening { color: var(--danger); animation: pulse 1s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        .filter-chips { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; }
         .chip { padding: 0.7rem 1.5rem; border-radius: 25px; border: 2px solid white; background: transparent; color: white; cursor: pointer; transition: all 0.3s; font-weight: 500; }
         .chip:hover, .chip.active { background: white; color: var(--secondary); }
         .menu-section { padding: 2rem 5%; max-width: 1400px; margin: 0 auto; }
@@ -55,13 +62,36 @@
         .menu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 2rem; }
         .menu-item { border-radius: 20px; overflow: hidden; transition: all 0.4s; position: relative; }
         .menu-item:hover { transform: translateY(-10px) scale(1.02); }
-        .item-image { width: 100%; height: 250px; object-fit: cover; }
+        .favorite-btn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: rgba(0,0,0,0.5);
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    cursor: pointer;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    z-index: 10;
+    transition: all 0.3s;
+}
+.favorite-btn:hover {
+    transform: scale(1.1);
+}
+.favorite-btn.active {
+    color: var(--danger);
+    background: rgba(255,107,107,0.3);
+}
+        .item-image { width: 100%; height: 250px; object-fit: cover; cursor: pointer; }
         .item-content { padding: 1.5rem; background: var(--glass-bg); backdrop-filter: blur(10px); }
         .item-name { font-size: 1.4rem; font-weight: 600; margin-bottom: 0.5rem; }
         .item-desc { opacity: 0.8; margin-bottom: 1rem; font-size: 0.9rem; }
+        .nutrition-info { display: flex; gap: 1rem; margin-bottom: 1rem; font-size: 0.85rem; opacity: 0.8; }
         .item-footer { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
         .item-price { font-size: 1.8rem; font-weight: bold; color: var(--warning); }
-        .rating { display: flex; align-items: center; gap: 0.3rem; }
+        .rating { display: flex; align-items: center; gap: 0.3rem; cursor: pointer; }
         .rating i { color: var(--warning); }
         .add-to-cart { background: linear-gradient(135deg, var(--success) 0%, #00a896 100%); color: white; border: none; padding: 0.8rem 1.5rem; border-radius: 25px; cursor: pointer; font-weight: 600; width: 100%; }
         .add-to-cart:hover { transform: scale(1.05); }
@@ -74,8 +104,32 @@
         .cart-item-info { flex: 1; }
         .qty-btn { background: var(--glass-bg); border: 1px solid white; color: white; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; }
         .checkout-btn { width: 100%; padding: 1rem; background: linear-gradient(135deg, var(--success) 0%, #00a896 100%); color: white; border: none; border-radius: 25px; font-size: 1.1rem; font-weight: 600; cursor: pointer; margin-top: 1rem; }
-        .toast { position: fixed; bottom: 2rem; right: 2rem; padding: 1rem 1.5rem; background: var(--glass-bg); backdrop-filter: blur(10px); border-radius: 10px; transform: translateX(500px); transition: all 0.3s; z-index: 3000; border-left: 4px solid var(--success); }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 3000; align-items: center; justify-content: center; }
+        .modal.active { display: flex; }
+        .modal-content { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 2rem; border-radius: 20px; max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+        .close-modal { background: none; border: none; color: white; font-size: 2rem; cursor: pointer; }
+        .review-item { background: rgba(255,255,255,0.1); padding: 1rem; border-radius: 10px; margin-bottom: 1rem; }
+        .review-header { display: flex; justify-content: space-between; margin-bottom: 0.5rem; }
+        .review-stars { color: var(--warning); }
+        .loading-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.8); display: none;
+    align-items: center; justify-content: center; z-index: 5000;
+}
+.loading-overlay.active { display: flex; }
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+        .toast { position: fixed; bottom: 2rem; right: 2rem; padding: 1rem 1.5rem; background: var(--glass-bg); backdrop-filter: blur(10px); border-radius: 10px; transform: translateX(500px); transition: all 0.3s; z-index: 4000; border-left: 4px solid var(--success); }
         .toast.show { transform: translateX(0); }
+        .order-tracking { text-align: center; padding: 2rem; }
+        .token-number { font-size: 4rem; font-weight: bold; color: var(--warning); margin: 1rem 0; }
+        .tracking-status { display: flex; justify-content: space-around; margin: 2rem 0; }
+        .status-step { text-align: center; position: relative; }
+        .status-step.active { color: var(--success); }
+        .status-step i { font-size: 2rem; margin-bottom: 0.5rem; }
         footer { background: rgba(0,0,0,0.3); padding: 3rem 5%; margin-top: 5rem; text-align: center; }
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
         @media (max-width: 768px) {
@@ -83,6 +137,47 @@
             .menu-grid { grid-template-columns: 1fr; }
             .cart-sidebar { width: 100%; right: -100%; }
         }
+        .print-receipt { display: none; }
+        /* Print Styles - FIXED VERSION */
+.print-receipt {
+    display: none;
+}
+
+@media print {
+    /* Hide everything */
+    body * {
+        visibility: hidden !important;
+        display: none !important;
+    }
+    
+    /* Show only receipt */
+    .print-receipt {
+        display: block !important;
+        visibility: visible !important;
+        position: absolute !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 100% !important;
+    }
+    
+    .print-receipt * {
+        visibility: visible !important;
+        display: block !important;
+    }
+    
+    /* Fix table display */
+    .print-receipt table {
+        display: table !important;
+    }
+    
+    .print-receipt tr {
+        display: table-row !important;
+    }
+    
+    .print-receipt td, .print-receipt th {
+        display: table-cell !important;
+    }
+}
     </style>
 </head>
 <body>
@@ -92,6 +187,9 @@
             <div class="nav-links">
                 <a href="#home">Home</a>
                 <a href="#menu">Menu</a>
+                <button class="track-btn" onclick="showTrackingModal()">
+                    <i class="fas fa-receipt"></i> Track Order
+                </button>
                 <button class="theme-toggle" onclick="toggleTheme()"><i class="fas fa-moon"></i></button>
                 <button class="cart-btn" onclick="toggleCart()">
                     <i class="fas fa-shopping-cart"></i>
@@ -102,20 +200,33 @@
     </nav>
 
     <section class="hero" id="home">
-        <h1>Premium Campus Dining</h1>
+        <h1>RMD Sinhgad Canteen</h1>
         <p>Fresh, Delicious & Affordable Meals</p>
         <button class="btn btn-primary" onclick="document.getElementById('menu').scrollIntoView({behavior: 'smooth'})">
             <i class="fas fa-book-open"></i> Browse Menu
         </button>
     </section>
 
+    <!-- Today's Special Banner -->
+<div style="background: linear-gradient(135deg, #ffd93d 0%, #ff6b6b 100%); padding: 1.5rem; border-radius: 15px; text-align: center; margin: 2rem 5%; box-shadow: 0 5px 15px rgba(0,0,0,0.3);">
+    <h3 style="font-size: 1.8rem; margin-bottom: 0.5rem; color: #000;">🌟 Today's Special 🌟</h3>
+    <p style="font-size: 1.2rem; font-weight: 600; color: #000;">Masala Dosa - Just ₹30 (Save ₹5!)</p>
+    <button class="btn btn-primary" style="margin-top: 1rem;" onclick="addToCart(2)">Order Now</button>
+</div>
+
     <div class="controls" id="menu">
-        <input type="text" class="search-input glass" placeholder="🔍 Search food..." id="searchInput" oninput="filterMenu()">
+        <div class="search-bar">
+            <input type="text" class="search-input glass" placeholder="🔍 Search food..." id="searchInput" oninput="filterMenu()">
+            <button class="voice-btn" id="voiceBtn" onclick="startVoiceSearch()" title="Voice Search">
+                <i class="fas fa-microphone"></i>
+            </button>
+        </div>
         <div class="filter-chips">
             <button class="chip active" onclick="filterCategory('all')">All</button>
             <button class="chip" onclick="filterCategory('veg')">🥗 Veg</button>
             <button class="chip" onclick="filterCategory('nonveg')">🍗 Non-Veg</button>
             <button class="chip" onclick="filterCategory('special')">⭐ Special</button>
+            <button class="chip" onclick="filterCategory('favorites')">❤️ Favorites</button>
         </div>
     </div>
 
@@ -123,6 +234,12 @@
         <h2 class="section-title">Our Menu</h2>
         <div class="menu-grid" id="menuGrid"></div>
     </section>
+
+    <!-- Recently Viewed Section -->
+<section class="menu-section" id="recentSection" style="display: none;">
+    <h3 class="section-title" style="font-size: 1.8rem;">Recently Viewed 👀</h3>
+    <div class="menu-grid" id="recentGrid"></div>
+</section>
 
     <div class="cart-sidebar" id="cartSidebar">
         <div class="cart-header">
@@ -132,67 +249,395 @@
         <div id="cartItems"></div>
         <div id="cartTotal" style="display:none;">
             <div style="border-top: 2px solid rgba(255,255,255,0.2); padding-top: 1rem; margin-top: 1rem;">
+                <div style="display:flex; justify-content:space-between; margin-bottom:0.5rem;">
+                    <span>Subtotal:</span>
+                    <span id="subtotal">₹0</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; margin-bottom:0.5rem;">
+                    <span>GST (5%):</span>
+                    <span id="gst">₹0</span>
+                </div>
                 <div style="display:flex; justify-content:space-between; font-size:1.5rem; font-weight:bold; color: var(--warning);">
                     <span>Total:</span>
                     <span id="total">₹0</span>
                 </div>
             </div>
+            <div style="margin-top: 1rem;">
+    <label style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem;">Your Name (Optional):</label>
+    <input type="text" id="customerName" placeholder="Enter your name" style="width: 100%; padding: 0.8rem; border-radius: 10px; border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.1); color: white; font-size: 1rem;">
+</div>
+
+<div style="margin-top: 1rem;">
+    <label style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem;">Special Instructions (Optional):</label>
+    <textarea id="specialInstructions" placeholder="Extra spicy, less oil, no onion, etc." style="width: 100%; padding: 0.8rem; border-radius: 10px; border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.1); color: white; font-size: 0.9rem; min-height: 60px;"></textarea>
+</div>
             <button class="checkout-btn" onclick="checkout()">Place Order</button>
         </div>
     </div>
 
+    <!-- Item Details Modal -->
+    <div class="modal" id="itemModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalItemName">Item Details</h2>
+                <button class="close-modal" onclick="closeItemModal()">×</button>
+            </div>
+            <img id="modalItemImage" style="width:100%; height:300px; object-fit:cover; border-radius:15px; margin-bottom:1rem;">
+            <div id="modalItemDetails"></div>
+            
+            <h3 style="margin: 2rem 0 1rem;">Reviews & Ratings</h3>
+            <div id="reviewsList"></div>
+            
+            <h4 style="margin: 1.5rem 0 1rem;">Add Your Review</h4>
+            <form onsubmit="submitReview(event)">
+                <div style="margin-bottom:1rem;">
+                    <label>Rating:</label>
+                    <div class="rating" style="font-size:2rem; cursor:pointer;">
+                        <i class="far fa-star" onclick="setRating(1)"></i>
+                        <i class="far fa-star" onclick="setRating(2)"></i>
+                        <i class="far fa-star" onclick="setRating(3)"></i>
+                        <i class="far fa-star" onclick="setRating(4)"></i>
+                        <i class="far fa-star" onclick="setRating(5)"></i>
+                    </div>
+                </div>
+                <textarea id="reviewText" placeholder="Share your experience..." style="width:100%; padding:1rem; border-radius:10px; background:rgba(255,255,255,0.1); color:white; border:1px solid rgba(255,255,255,0.3); min-height:100px;"></textarea>
+                <button type="submit" class="btn btn-primary" style="width:100%; margin-top:1rem;">Submit Review</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Order Tracking Modal -->
+    <div class="modal" id="trackingModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Track Your Order</h2>
+                <button class="close-modal" onclick="closeTrackingModal()">×</button>
+            </div>
+            <div class="order-tracking" id="trackingContent">
+                <div class="token-number">Token #<span id="tokenNumber">042</span></div>
+                <p style="font-size:1.2rem; margin-bottom:2rem;">Estimated Time: <strong>15 minutes</strong></p>
+                <div class="tracking-status">
+                    <div class="status-step active">
+                        <i class="fas fa-check-circle"></i>
+                        <p>Order Placed</p>
+                    </div>
+                    <div class="status-step active">
+                        <i class="fas fa-fire"></i>
+                        <p>Preparing</p>
+                    </div>
+                    <div class="status-step">
+                        <i class="fas fa-bell"></i>
+                        <p>Ready</p>
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="printReceipt()">
+                    <i class="fas fa-print"></i> Print Receipt
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Print Receipt -->
+    <!-- Print Receipt -->
+<div class="print-receipt" id="printReceipt">
+    <div style="max-width: 400px; margin: 0 auto; padding: 20px; font-family: 'Courier New', monospace; color: #000;">
+        <!-- Header -->
+        <div style="text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 15px;">
+            <h2 style="margin: 0; font-size: 24px; color: #000;">🍽️ CampusEats Pro</h2>
+            <p style="margin: 5px 0; font-size: 12px; color: #666;">Premium Campus Dining</p>
+            <p style="margin: 0; font-size: 11px; color: #666;">📞 +91 9373110632</p>
+        </div>
+
+        <!-- Order Info -->
+        <div style="margin-bottom: 15px; font-size: 13px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                <strong>TOKEN NUMBER:</strong>
+                <span id="receiptToken" style="font-size: 18px; font-weight: bold; color: #000;">#000</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                <span>Date:</span>
+                <span id="receiptDate">--/--/----</span>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+                <span>Time:</span>
+                <span id="receiptTime">--:--</span>
+            </div>
+        </div>
+
+        <hr style="border: 1px dashed #999;">
+
+        <!-- Items List -->
+        <div style="margin: 15px 0;">
+            <table style="width: 100%; font-size: 13px; color: #000;" id="receiptItems">
+                <thead>
+                    <tr style="border-bottom: 1px solid #999;">
+                        <th style="text-align: left; padding: 5px 0;">ITEM</th>
+                        <th style="text-align: center; padding: 5px 0;">QTY</th>
+                        <th style="text-align: right; padding: 5px 0;">PRICE</th>
+                        <th style="text-align: right; padding: 5px 0;">TOTAL</th>
+                    </tr>
+                </thead>
+                <tbody id="receiptItemsList">
+                    <!-- Items will be added here -->
+                </tbody>
+            </table>
+        </div>
+
+        <hr style="border: 1px dashed #999;">
+
+        <!-- Totals -->
+        <div style="margin: 15px 0; font-size: 13px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                <span>Subtotal:</span>
+                <span id="receiptSubtotal">₹0</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                <span>GST (5%):</span>
+                <span id="receiptGST">₹0</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 16px; font-weight: bold; padding-top: 10px; border-top: 2px solid #000;">
+                <span>TOTAL:</span>
+                <span id="receiptTotal">₹0</span>
+            </div>
+        </div>
+
+        <hr style="border: 1px solid #000;">
+
+        <!-- Footer -->
+        <div style="text-align: center; margin-top: 15px; font-size: 11px; color: #666;">
+            <p style="margin: 5px 0;">*** THANK YOU FOR YOUR ORDER ***</p>
+            <p style="margin: 5px 0;">Please collect your order at the counter</p>
+            <p style="margin: 5px 0;">Estimated time: 15 minutes</p>
+            <p style="margin: 10px 0 0 0; font-size: 10px;">Powered by CampusEats Pro</p>
+        </div>
+    </div>
+</div>
+
+<style>
+@media print {
+    body * {
+        visibility: hidden;
+    }
+    .print-receipt, .print-receipt * {
+        visibility: visible;
+    }
+    .print-receipt {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+    }
+}
+</style>
+
     <div class="toast" id="toast"><i class="fas fa-check-circle"></i> <span id="toastMsg"></span></div>
 
+
+    <!-- Loading Spinner -->
+<div id="loadingOverlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: none; align-items: center; justify-content: center; z-index: 9999;">
+    <div style="text-align: center;">
+        <div style="border: 6px solid rgba(255,255,255,0.3); border-top: 6px solid white; border-radius: 50%; width: 60px; height: 60px; animation: spin 1s linear infinite; margin: 0 auto;"></div>
+        <p style="color: white; margin-top: 1rem; font-size: 1.2rem;">Processing Order...</p>
+    </div>
+</div>
+
+<style>
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+</style>
     <footer>
-        <p>© 2026 CampusEats Pro | Built by Jagruti</p>
-        <p style="margin-top:1rem; opacity:0.8;">📞 +91 9373110632 | canteen@college.edu</p>
+        <p style="margin: 5px 0; font-size: 12px; color: #666;">RMD Sinhgad College</p>
+<p style="margin: 0; font-size: 11px; color: #666;">📞 +91 8275011889</p>
+        <p style="margin-top:0.5rem;"><a href="admin.html" style="color:white;">Admin Panel</a></p>
     </footer>
 
     <script>
-        const menu = [
-            {id:1, name:"Vadapav", price:20, cat:"veg", img:"https://images.unsplash.com/photo-1630383249896-424e482df921?w=500", rating:4.5},
-            {id:2, name:"Masala Dosa", price:35, cat:"veg", img:"https://images.unsplash.com/photo-1668236543090-82eba5ee5976?w=500", rating:4.8, special:true},
-            {id:3, name:"Poha", price:25, cat:"veg", img:"https://images.unsplash.com/photo-1606491956689-2ea866880c84?w=500", rating:4.3},
-            {id:4, name:"Samosa", price:15, cat:"veg", img:"https://images.unsplash.com/photo-1601050690597-df0568f70950?w=500", rating:4.6},
-            {id:5, name:"Pav Bhaji", price:40, cat:"veg", img:"https://images.unsplash.com/photo-1626074353765-517a818a5b07?w=500", rating:4.7, special:true},
-            {id:6, name:"Sandwich", price:30, cat:"veg", img:"https://images.unsplash.com/photo-1528735602780-2552fd46c7af?w=500", rating:4.4},
-            {id:7, name:"Chai", price:10, cat:"veg", img:"https://images.unsplash.com/photo-1576092768241-dec231879fc3?w=500", rating:4.9},
-            {id:8, name:"Chicken Burger", price:80, cat:"nonveg", img:"https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500", rating:4.7},
-        ];
-        let cart = [];
+        const menu = JSON.parse(localStorage.getItem('menuItems')) || [
+    {id:1, name:"Vadapav", price:20, cat:"veg", img:"images/Vadapav.avif", rating:4.5, calories:250, protein:6, prepTime:"5 min", popular:true, reviews:[]},
+    {id:2, name:"Masala Dosa", price:35, cat:"veg", img:"images/dosa.jpeg", rating:4.8, calories:350, protein:8, prepTime:"10 min", special:true, popular:true, reviews:[]},
+    {id:3, name:"Poha", price:25, cat:"veg", img:"images/poha.webp", rating:4.3, calories:200, protein:5, prepTime:"8 min", reviews:[]},
+    {id:4, name:"Samosa", price:15, cat:"veg", img:"samosa.jpeg", rating:4.6, calories:220, protein:4, prepTime:"5 min", reviews:[]},
+    {id:8, name:"Chicken Burger", price:80, cat:"nonveg", img:"images/cb.jpeg", rating:4.7, calories:450, protein:25, prepTime:"12 min", popular:true, reviews:[]},
+];
+        let cart = JSON.parse(sessionStorage.getItem('cart')) || [];
         let currentFilter = 'all';
+        let currentItemId = null;
+        let currentRating = 0;
+        let recognition = null;
+
+        function isFavorite(id) {
+    const favs = JSON.parse(localStorage.getItem('favorites') || '[]');
+    return favs.includes(id);
+}
+
+function toggleFavorite(id, event) {
+    event.stopPropagation();
+    let favs = JSON.parse(localStorage.getItem('favorites') || '[]');
+    if (favs.includes(id)) {
+        favs = favs.filter(f => f !== id);
+        showToast('Removed from favorites');
+    } else {
+        favs.push(id);
+        showToast('Added to favorites! ❤️');
+    }
+    localStorage.setItem('favorites', JSON.stringify(favs));
+    renderMenu(currentFilter === 'all' ? menu : currentFilter === 'favorites' ? menu.filter(i => isFavorite(i.id)) : menu.filter(i => i.cat === currentFilter || (currentFilter === 'special' && i.special)));
+}
 
         function renderMenu(items = menu) {
-            const grid = document.getElementById('menuGrid');
-            grid.innerHTML = items.map(item => `
-                <div class="menu-item glass">
-                    <img src="${item.img}" alt="${item.name}" class="item-image">
-                    <div class="item-content">
-                        <div class="item-name">${item.name} ${item.special ? '⭐' : ''}</div>
-                        <div class="item-desc">${item.cat === 'veg' ? '🥗 Vegetarian' : '🍗 Non-Veg'}</div>
-                        <div class="item-footer">
-                            <div class="item-price">₹${item.price}</div>
-                            <div class="rating">
-                                <i class="fas fa-star"></i> ${item.rating}
-                            </div>
-                        </div>
-                        <button class="add-to-cart" onclick="addToCart(${item.id})">
-                            <i class="fas fa-plus"></i> Add to Cart
-                        </button>
+    const grid = document.getElementById('menuGrid');
+    grid.innerHTML = items.map(item => `
+        <div class="menu-item glass">
+            <button class="favorite-btn ${isFavorite(item.id) ? 'active' : ''}" onclick="toggleFavorite(${item.id}, event)">
+                <i class="fa${isFavorite(item.id) ? 's' : 'r'} fa-heart"></i>
+            </button>
+            <img src="${item.img}" alt="${item.name}" class="item-image" onclick="showItemDetails(${item.id})">
+            <div class="item-content">
+                <div class="item-name">${item.name} ${item.special ? '⭐' : ''} ${item.popular ? '🔥' : ''}</div>
+                <div class="item-desc">${item.cat === 'veg' ? '🥗 Vegetarian' : '🍗 Non-Veg'}</div>
+                <div class="nutrition-info">
+                    <span>🔥 ${item.calories} cal</span>
+                    <span>💪 ${item.protein}g protein</span>
+                    <span>⏱️ ${item.prepTime}</span>
+                </div>
+                <div class="item-footer">
+                    <div class="item-price">₹${item.price}</div>
+                    <div class="rating" onclick="showItemDetails(${item.id})">
+                        <i class="fas fa-star"></i> ${item.rating} (${(item.reviews || []).length})
                     </div>
                 </div>
-            `).join('');
+                <button class="add-to-cart" onclick="addToCart(${item.id})">
+                    <i class="fas fa-plus"></i> Add to Cart
+                </button>
+            </div>
+        </div>
+    `).join('');
+    
+    // Recently Viewed Section
+    const recent = JSON.parse(localStorage.getItem('recentlyViewed') || '[]').slice(0, 4);
+    if (recent.length) {
+        document.getElementById('recentSection').style.display = 'block';
+        const recentItems = menu.filter(i => recent.includes(i.id));
+        document.getElementById('recentGrid').innerHTML = recentItems.map(item => `
+            <div class="menu-item glass" onclick="showItemDetails(${item.id})" style="cursor:pointer;">
+                <img src="${item.img}" alt="${item.name}" class="item-image">
+                <div class="item-content">
+                    <div class="item-name">${item.name}</div>
+                    <div class="item-price">₹${item.price}</div>
+                </div>
+            </div>
+        `).join('');
+    }
+}
+
+        function showItemDetails(id) {
+            currentItemId = id;
+            // Track recently viewed
+    let recentlyViewed = JSON.parse(localStorage.getItem('recentlyViewed') || '[]');
+    recentlyViewed = [id, ...recentlyViewed.filter(i => i !== id)].slice(0, 5);
+    localStorage.setItem('recentlyViewed', JSON.stringify(recentlyViewed));
+            const item = menu.find(i => i.id === id);
+            document.getElementById('modalItemName').textContent = item.name;
+            document.getElementById('modalItemImage').src = item.img;
+            document.getElementById('modalItemDetails').innerHTML = `
+                <p style="font-size:1.2rem; margin-bottom:1rem;">${item.cat === 'veg' ? '🥗 Vegetarian' : '🍗 Non-Vegetarian'}</p>
+                <div style="display:flex; gap:2rem; margin-bottom:1rem;">
+                    <span><strong>Price:</strong> ₹${item.price}</span>
+                    <span><strong>Calories:</strong> ${item.calories}</span>
+                    <span><strong>Protein:</strong> ${item.protein}g</span>
+                </div>
+                <p style="opacity:0.8;">Rating: ⭐ ${item.rating} / 5</p>
+            `;
+            
+            const reviews = item.reviews || [];
+            document.getElementById('reviewsList').innerHTML = reviews.length ? reviews.map(r => `
+                <div class="review-item">
+                    <div class="review-header">
+                        <strong>${r.name}</strong>
+                        <span class="review-stars">${'⭐'.repeat(r.rating)}</span>
+                    </div>
+                    <p style="opacity:0.9;">${r.text}</p>
+                    <small style="opacity:0.6;">${r.date}</small>
+                </div>
+            `).join('') : '<p style="opacity:0.6; text-align:center;">No reviews yet. Be the first!</p>';
+            
+            document.getElementById('itemModal').classList.add('active');
+        }
+
+        function closeItemModal() {
+            document.getElementById('itemModal').classList.remove('active');
+            currentRating = 0;
+            document.querySelectorAll('#itemModal .rating i').forEach(i => i.className = 'far fa-star');
+        }
+
+        function setRating(stars) {
+            currentRating = stars;
+            document.querySelectorAll('#itemModal .rating i').forEach((star, idx) => {
+                star.className = idx < stars ? 'fas fa-star' : 'far fa-star';
+            });
+        }
+
+        function submitReview(e) {
+            e.preventDefault();
+            if (!currentRating) return alert('Please select a rating!');
+            const text = document.getElementById('reviewText').value;
+            if (!text) return alert('Please write a review!');
+            
+            const item = menu.find(i => i.id === currentItemId);
+            if (!item.reviews) item.reviews = [];
+            item.reviews.push({
+                name: 'Student',
+                rating: currentRating,
+                text: text,
+                date: new Date().toLocaleDateString()
+            });
+            
+            item.rating = (item.reviews.reduce((sum, r) => sum + r.rating, 0) / item.reviews.length).toFixed(1);
+            localStorage.setItem('menuItems', JSON.stringify(menu));
+            
+            showToast('Review submitted!');
+            closeItemModal();
+            renderMenu(currentFilter === 'all' ? menu : menu.filter(i => i.cat === currentFilter || (currentFilter === 'special' && i.special)));
+        }
+
+        function startVoiceSearch() {
+            if (!('webkitSpeechRecognition' in window)) {
+                return alert('Voice search not supported in this browser');
+            }
+            
+            if (!recognition) {
+                recognition = new webkitSpeechRecognition();
+                recognition.continuous = false;
+                recognition.interimResults = false;
+                
+                recognition.onresult = (e) => {
+                    const transcript = e.results[0][0].transcript;
+                    document.getElementById('searchInput').value = transcript;
+                    filterMenu();
+                    document.getElementById('voiceBtn').classList.remove('listening');
+                };
+                
+                recognition.onerror = () => {
+                    document.getElementById('voiceBtn').classList.remove('listening');
+                };
+            }
+            
+            document.getElementById('voiceBtn').classList.add('listening');
+            recognition.start();
         }
 
         function filterCategory(cat) {
-            currentFilter = cat;
-            document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
-            event.target.classList.add('active');
-            const filtered = cat === 'all' ? menu : 
-                           cat === 'special' ? menu.filter(i => i.special) :
-                           menu.filter(i => i.cat === cat);
-            renderMenu(filtered);
-        }
+    currentFilter = cat;
+    document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+    event.target.classList.add('active');
+    const filtered = cat === 'all' ? menu : 
+                   cat === 'special' ? menu.filter(i => i.special) :
+                   cat === 'favorites' ? menu.filter(i => isFavorite(i.id)) :
+                   menu.filter(i => i.cat === cat);
+    renderMenu(filtered);
+}
 
         function filterMenu() {
             const search = document.getElementById('searchInput').value.toLowerCase();
@@ -204,16 +649,26 @@
         }
 
         function addToCart(id) {
-            const item = menu.find(i => i.id === id);
-            const existing = cart.find(i => i.id === id);
-            if (existing) existing.qty++;
-            else cart.push({...item, qty: 1});
-            updateCart();
-            showToast(`${item.name} added to cart!`);
-        }
+    const item = menu.find(i => i.id === id);
+    const existing = cart.find(i => i.id === id);
+    if (existing) existing.qty++;
+    else cart.push({...item, qty: 1});
+    updateCart();
+    showToast(`${item.name} added!`);
+    
+    // Combo suggestion
+    if (id === 2 && !cart.find(i => i.id === 7)) {
+        setTimeout(() => {
+            if (confirm('Would you like to add Chai (₹10) with your Dosa?')) {
+                addToCart(7);
+            }
+        }, 500);
+    }
+}
 
         function updateCart() {
-            const count = cart.reduce((sum, i) => sum + i.qty, 0);
+            sessionStorage.setItem('cart', JSON.stringify(cart));
+            const count = cart.reduce((s, i) => s + i.qty, 0);
             document.getElementById('cartCount').textContent = count;
             
             const itemsHtml = cart.length ? cart.map(i => `
@@ -237,7 +692,11 @@
             document.getElementById('cartItems').innerHTML = itemsHtml;
             
             if (cart.length) {
-                const total = cart.reduce((sum, i) => sum + (i.price * i.qty), 0);
+                const subtotal = cart.reduce((s, i) => s + (i.price * i.qty), 0);
+                const gst = Math.round(subtotal * 0.05);
+                const total = subtotal + gst;
+                document.getElementById('subtotal').textContent = `₹${subtotal}`;
+                document.getElementById('gst').textContent = `₹${gst}`;
                 document.getElementById('total').textContent = `₹${total}`;
                 document.getElementById('cartTotal').style.display = 'block';
             } else {
@@ -261,16 +720,112 @@
             document.getElementById('cartSidebar').classList.toggle('active');
         }
 
-        function checkout() {
-            const items = cart.map(i => `${i.name} x${i.qty}`).join(', ');
-            const total = cart.reduce((sum, i) => sum + (i.price * i.qty), 0);
-            const msg = `Order:%0A${items}%0A%0ATotal: ₹${total}`;
-            window.open(`https://wa.me/919373110632?text=${msg}`, '_blank');
-            cart = [];
-            updateCart();
-            toggleCart();
-            showToast('Order placed! Check WhatsApp');
-        }
+        function showTrackingModal() {
+    const lastOrder = JSON.parse(localStorage.getItem('lastOrder'));
+    if (lastOrder) {
+        // Update the token number in the UI from the saved order
+        document.getElementById('tokenNumber').textContent = lastOrder.token;
+        document.getElementById('trackingModal').classList.add('active');
+    } else {
+        showToast('No active order found to track!');
+    }
+}
+
+function closeTrackingModal() {
+    document.getElementById('trackingModal').classList.remove('active');
+}
+
+   function checkout() {
+    // Show loading spinner
+    document.getElementById('loadingOverlay').style.display = 'flex';
+
+    // Order confirmation
+    const itemsSummary = cart.map(i => `${i.name} x${i.qty}`).join('\n');
+    const subtotalCalc = cart.reduce((s, i) => s + (i.price * i.qty), 0);
+    const confirmMsg = `Confirm your order?\n\n${itemsSummary}\n\nTotal: ₹${subtotalCalc + Math.round(subtotalCalc * 0.05)}`;
+
+    if (!confirm(confirmMsg)) {
+        document.getElementById('loadingOverlay').style.display = 'none';
+        return;
+    }
+
+    const items = cart.map(i => `${i.name} x${i.qty}`).join(', ');
+    const subtotal = cart.reduce((s, i) => s + (i.price * i.qty), 0);
+    const gst = Math.round(subtotal * 0.05);
+    const total = subtotal + gst;
+    const token = Math.floor(Math.random() * 900) + 100;
+
+    localStorage.setItem('lastOrder', JSON.stringify({
+        token,
+        items: cart,
+        total,
+        time: new Date().toLocaleTimeString()
+    }));
+
+    // Replaced message logic here
+    const customerName = document.getElementById('customerName').value || 'Guest';
+    const instructions = document.getElementById('specialInstructions').value;
+
+    let msg = `New Order (Token #${token}):%0A%0ACustomer: ${customerName}%0A%0A${items}%0A%0ASubtotal: ₹${subtotal}%0AGST: ₹${gst}%0ATotal: ₹${total}`;
+
+    if (instructions) {
+        msg += `%0A%0ASpecial Instructions: ${instructions}`;
+    }
+
+    window.open(`https://wa.me/919373110632?text=${msg}`, '_blank');
+
+    // Hide loading spinner after 2 seconds
+    setTimeout(() => {
+        document.getElementById('loadingOverlay').style.display = 'none';
+    }, 2000);
+
+    document.getElementById('tokenNumber').textContent = token;
+    cart = [];
+    updateCart();
+    toggleCart();
+    showTrackingModal();
+    showToast('Order placed! Token: #' + token);
+}
+
+       function printReceipt() {
+    const lastOrder = JSON.parse(localStorage.getItem('lastOrder'));
+    if (!lastOrder) {
+        alert('No order found to print!');
+        return;
+    }
+    
+    // Fill in order details
+    document.getElementById('receiptToken').textContent = '#' + lastOrder.token;
+    document.getElementById('receiptDate').textContent = new Date().toLocaleDateString('en-IN');
+    document.getElementById('receiptTime').textContent = lastOrder.time;
+    
+    // Calculate subtotal and GST
+    const subtotal = lastOrder.items.reduce((sum, item) => sum + (item.price * item.qty), 0);
+    const gst = Math.round(subtotal * 0.05);
+    const total = subtotal + gst;
+    
+    // Build items table
+    const itemsHTML = lastOrder.items.map(item => `
+        <tr style="border-bottom: 1px dashed #ddd;">
+            <td style="padding: 8px 0; color: #000;">${item.name}</td>
+            <td style="text-align: center; color: #000;">x${item.qty}</td>
+            <td style="text-align: right; color: #000;">₹${item.price}</td>
+            <td style="text-align: right; font-weight: bold; color: #000;">₹${item.price * item.qty}</td>
+        </tr>
+    `).join('');
+    
+    document.getElementById('receiptItemsList').innerHTML = itemsHTML;
+    
+    // Fill in totals
+    document.getElementById('receiptSubtotal').textContent = '₹' + subtotal;
+    document.getElementById('receiptGST').textContent = '₹' + gst;
+    document.getElementById('receiptTotal').textContent = '₹' + total;
+    
+    // Print
+    setTimeout(() => {
+        window.print();
+    }, 100);
+}
 
         function toggleTheme() {
             document.body.classList.toggle('dark-mode');
@@ -279,10 +834,9 @@
         }
 
         function showToast(msg) {
-            const toast = document.getElementById('toast');
             document.getElementById('toastMsg').textContent = msg;
-            toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 3000);
+            document.getElementById('toast').classList.add('show');
+            setTimeout(() => document.getElementById('toast').classList.remove('show'), 3000);
         }
 
         window.onscroll = () => {
@@ -290,6 +844,7 @@
         };
 
         renderMenu();
+        updateCart();
     </script>
 </body>
 </html>
